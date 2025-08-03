@@ -1,58 +1,57 @@
 import os
 import sys
 
-video_extensions = (".mp4")
-image_extensions = (".jpg")
+VIDEO_EXTENSIONS = (".mp4")
+IMAGE_EXTENSIONS = (".jpg")
 
-TYPE_KEY = "type"
-EXT_KEY = "ext"
-
-def categorize_path(input_path, output_path):
+def build_metadata(input_path, output_path):
     result = {}
 
-    result["input"] = input_path
+    result["input_path"] = input_path
 
     if os.path.isdir(input_path):
-        result[TYPE_KEY] = 'folder'
+        result["type"] = 'directory'
         return result
 
     ext = input_path.split('.')[-1]
-    result[EXT_KEY] = ext
+    result["extension"] = ext
 
-    if ext in video_extensions:
-        result[TYPE_KEY] = 'video'
-    elif ext in image_extensions:
-        result[TYPE_KEY] = 'image'
+    if ext in VIDEO_EXTENSIONS:
+        result["type"] = 'video'
+    elif ext in IMAGE_EXTENSIONS:
+        result["type"] = 'image'
     else:
-        result[TYPE_KEY] = 'unsupported'
+        result["type"] = 'unsupported'
 
     file_path = "/".join(input_path.split('/')[1:])
-    result["output"] = os.path.join(output_path, file_path)
+    result["output_path"] = os.path.join(output_path, file_path)
 
     return result
 
-def get_folder_elements(folder_path):
-    elements = []
+def get_dir_contents(folder_path):
+    contents = []
     for root, _, files in os.walk(folder_path):
         for name in files:
-            elements.append(os.path.join(root, name))
-    return elements
+            contents.append(os.path.join(root, name))
+    return contents
 
 def run(input_path, output_path):
-    path_category = categorize_path(input_path, output_path)
+    file_metadata = build_metadata(input_path, output_path)
 
-    print(F"処理開始: {path_category['input']}")
+    print(F"処理開始: {file_metadata['input_path']}")
 
-    if path_category[TYPE_KEY] == 'folder':
-        folder_elements = get_folder_elements(input_path)
-        for element in folder_elements:
-            run(element, output_path)
-    elif path_category[TYPE_KEY] == 'video':
+    if file_metadata["type"] == 'directory':
+        dir_contents = get_dir_contents(file_metadata["input_path"])
+
+        for content_path in dir_contents:
+            run(content_path, output_path)
+
+    elif file_metadata["type"] == 'video':
         print("動画ファイルの処理は未実装です")
-    elif path_category[TYPE_KEY] == 'image':
+    elif file_metadata["type"] == 'image':
         print("画像ファイルの処理は未実装です")
     else:
-        print(f"{path_category['input']} はサポートされていないファイル形式です")
+        print(f"{file_metadata['input_path']} はサポートされていないファイル形式です")
 
 def main():
     if len(sys.argv) < 3:
