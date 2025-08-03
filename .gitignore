@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Media files
+original/
+result/
+
+# Media extensions
+*.mp4
+*.jpg
