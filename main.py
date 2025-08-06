@@ -1,5 +1,7 @@
-import os
 import sys
+import os
+
+from utils import directory_utils
 
 VIDEO_EXTENSIONS = (".mp4")
 IMAGE_EXTENSIONS = (".jpg")
@@ -28,20 +30,13 @@ def build_metadata(src_path, dest_path):
 
     return result
 
-def get_dir_contents(folder_path):
-    contents = []
-    for root, _, files in os.walk(folder_path):
-        for name in files:
-            contents.append(os.path.join(root, name))
-    return contents
-
 def run(src_path, dest_path):
     file_metadata = build_metadata(src_path, dest_path)
 
     print(F"処理開始: {file_metadata['src_path']}")
 
     if file_metadata["type"] == 'directory':
-        dir_contents = get_dir_contents(file_metadata["src_path"])
+        dir_contents = directory_utils.get_files_in_directory(file_metadata["src_path"])
 
         for content_path in dir_contents:
             run(content_path, dest_path)
