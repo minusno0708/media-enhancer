@@ -1,19 +1,25 @@
-import os
 import sys
+import os
+import shutil
+
+from utils import directory_utils
 
 VIDEO_EXTENSIONS = (".mp4")
 IMAGE_EXTENSIONS = (".jpg")
 
-def build_metadata(input_path, output_path):
+def build_metadata(src_path, dest_path):
     result = {}
 
-    result["input_path"] = input_path
+    result["src_path"] = src_path
 
-    if os.path.isdir(input_path):
+    file_path = "/".join(src_path.split('/')[1:])
+    result["dest_path"] = os.path.join(dest_path, file_path)
+
+    if os.path.isdir(src_path):
         result["type"] = 'directory'
         return result
 
-    ext = input_path.split('.')[-1]
+    ext = src_path.split('.')[-1]
     result["extension"] = ext
 
     if ext in VIDEO_EXTENSIONS:
@@ -23,45 +29,39 @@ def build_metadata(input_path, output_path):
     else:
         result["type"] = 'unsupported'
 
-    file_path = "/".join(input_path.split('/')[1:])
-    result["output_path"] = os.path.join(output_path, file_path)
-
     return result
 
-def get_dir_contents(folder_path):
-    contents = []
-    for root, _, files in os.walk(folder_path):
-        for name in files:
-            contents.append(os.path.join(root, name))
-    return contents
+def run(src_path, dest_path):
+    file_metadata = build_metadata(src_path, dest_path)
 
-def run(input_path, output_path):
-    file_metadata = build_metadata(input_path, output_path)
-
-    print(F"処理開始: {file_metadata['input_path']}")
+    print(F"処理開始: {file_metadata['src_path']}")
 
     if file_metadata["type"] == 'directory':
-        dir_contents = get_dir_contents(file_metadata["input_path"])
+        dir_contents = directory_utils.get_children(file_metadata["src_path"])
+
+        directory_utils.create_directory_if_not_exists(file_metadata["dest_path"])
 
         for content_path in dir_contents:
-            run(content_path, output_path)
+            run(content_path, dest_path)
 
     elif file_metadata["type"] == 'video':
-        print("動画ファイルの処理は未実装です")
+        # 仮の処理として動画ファイルをコピー
+        shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
     elif file_metadata["type"] == 'image':
-        print("画像ファイルの処理は未実装です")
+        # 仮の処理として画像ファイルをコピー
+        shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
     else:
-        print(f"{file_metadata['input_path']} はサポートされていないファイル形式です")
+        print(f"{file_metadata['src_path']} はサポートされていないファイル形式です")
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python main.py <input_path> <output_path>")
+        print("Usage: python main.py <source_path> <destination_path>")
         sys.exit(1)
 
-    input_path = sys.argv[1]
-    output_path = sys.argv[2]
+    src_path = sys.argv[1]
+    dest_path = sys.argv[2]
 
-    run(input_path, output_path)
+    run(src_path, dest_path)
 
 if __name__ == "__main__":
     main()
