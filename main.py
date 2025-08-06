@@ -11,6 +11,9 @@ def build_metadata(src_path, dest_path):
 
     result["src_path"] = src_path
 
+    file_path = "/".join(src_path.split('/')[1:])
+    result["dest_path"] = os.path.join(dest_path, file_path)
+
     if os.path.isdir(src_path):
         result["type"] = 'directory'
         return result
@@ -25,18 +28,18 @@ def build_metadata(src_path, dest_path):
     else:
         result["type"] = 'unsupported'
 
-    file_path = "/".join(src_path.split('/')[1:])
-    result["dest_path"] = os.path.join(dest_path, file_path)
-
     return result
 
 def run(src_path, dest_path):
     file_metadata = build_metadata(src_path, dest_path)
 
     print(F"処理開始: {file_metadata['src_path']}")
+    print(F"ディレクトリ内のファイル: {file_metadata}")
 
     if file_metadata["type"] == 'directory':
-        dir_contents = directory_utils.get_files_in_directory(file_metadata["src_path"])
+        dir_contents = directory_utils.get_children(file_metadata["src_path"])
+
+        directory_utils.create_directory_if_not_exists(file_metadata["dest_path"])
 
         for content_path in dir_contents:
             run(content_path, dest_path)

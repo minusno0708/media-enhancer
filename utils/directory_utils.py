@@ -1,8 +1,9 @@
 import os
+import glob
 
-def get_files_in_directory(path):
-    file_paths = []
-    for root, _, files in os.walk(path):
-        for name in files:
-            file_paths.append(os.path.join(root, name))
-    return file_paths
+def create_directory_if_not_exists(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+def get_children(path):
+    return glob.glob(os.path.join(path, '*'))
