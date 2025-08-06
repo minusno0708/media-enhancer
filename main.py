@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 
 from utils import directory_utils
 
@@ -34,7 +35,6 @@ def run(src_path, dest_path):
     file_metadata = build_metadata(src_path, dest_path)
 
     print(F"処理開始: {file_metadata['src_path']}")
-    print(F"ディレクトリ内のファイル: {file_metadata}")
 
     if file_metadata["type"] == 'directory':
         dir_contents = directory_utils.get_children(file_metadata["src_path"])
@@ -45,9 +45,11 @@ def run(src_path, dest_path):
             run(content_path, dest_path)
 
     elif file_metadata["type"] == 'video':
-        print("動画ファイルの処理は未実装です")
+        # 仮の処理として動画ファイルをコピー
+        shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
     elif file_metadata["type"] == 'image':
-        print("画像ファイルの処理は未実装です")
+        # 仮の処理として画像ファイルをコピー
+        shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
     else:
         print(f"{file_metadata['src_path']} はサポートされていないファイル形式です")
 
