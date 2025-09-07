@@ -7,13 +7,13 @@ from utils import directory_utils
 VIDEO_EXTENSIONS = (".mp4")
 IMAGE_EXTENSIONS = (".jpg")
 
-def build_metadata(src_path, dest_path):
+def build_metadata(src_path, output_dir):
     result = {}
 
     result["src_path"] = src_path
 
     file_path = "/".join(src_path.split('/')[1:])
-    result["dest_path"] = os.path.join(dest_path, file_path)
+    result["dest_path"] = os.path.join(output_dir, file_path)
 
     if os.path.isdir(src_path):
         result["type"] = 'directory'
@@ -31,8 +31,8 @@ def build_metadata(src_path, dest_path):
 
     return result
 
-def run(src_path, dest_path):
-    file_metadata = build_metadata(src_path, dest_path)
+def run(src_path, output_dir):
+    file_metadata = build_metadata(src_path, output_dir)
 
     print(F"処理開始: {file_metadata['src_path']}")
 
@@ -42,7 +42,7 @@ def run(src_path, dest_path):
         directory_utils.create_directory_if_not_exists(file_metadata["dest_path"])
 
         for content_path in dir_contents:
-            run(content_path, dest_path)
+            run(content_path, output_dir)
 
     elif file_metadata["type"] == 'video':
         # 仮の処理として動画ファイルをコピー
@@ -59,9 +59,9 @@ def main():
         sys.exit(1)
 
     src_path = sys.argv[1]
-    dest_path = sys.argv[2]
+    output_dir = sys.argv[2]
 
-    run(src_path, dest_path)
+    run(src_path, output_dir)
 
 if __name__ == "__main__":
     main()
