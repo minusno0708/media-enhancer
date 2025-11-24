@@ -1,8 +1,9 @@
-import sys
+import argparse
 import os
 import shutil
 
 from utils import directory_utils
+from video_tools import analyzer
 
 VIDEO_EXTENSIONS = (".mp4")
 IMAGE_EXTENSIONS = (".jpg")
@@ -34,7 +35,7 @@ def build_metadata(src_path, output_dir):
 def run(src_path, output_dir):
     file_metadata = build_metadata(src_path, output_dir)
 
-    print(F"処理開始: {file_metadata['src_path']}")
+    print(F"Processing: {file_metadata['src_path']}")
 
     if file_metadata["type"] == 'directory':
         dir_contents = directory_utils.get_children(file_metadata["src_path"])
@@ -47,21 +48,20 @@ def run(src_path, output_dir):
     elif file_metadata["type"] == 'video':
         # 仮の処理として動画ファイルをコピー
         shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
+
+        streams_metadata = analyzer.analyze(file_metadata['src_path'])
+        print(f"Extracted metadata: {streams_metadata}")
     elif file_metadata["type"] == 'image':
         # 仮の処理として画像ファイルをコピー
         shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
     else:
-        print(f"{file_metadata['src_path']} はサポートされていないファイル形式です")
-
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python main.py <source_path> <destination_path>")
-        sys.exit(1)
-
-    src_path = sys.argv[1]
-    output_dir = sys.argv[2]
-
-    run(src_path, output_dir)
+        print(f"{file_metadata['src_path']} is unsupported file type. Skipping.")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Process video and image files.")
+    parser.add_argument("-src", "--source", type=str, required=True, help="Input Path")
+    parser.add_argument("-dest", "--destination", type=str, required=True, help="Output Path")
+
+    args = parser.parse_args()
+    
+    run(args.source, args.destination)

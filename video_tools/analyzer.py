@@ -4,7 +4,46 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ffmpeg_cmd import run as ffmpeg_run
+from ffmpeg_cmd import run as ffmpeg_run        
+
+def parse_ffprobe_output(output):
+    stream_parts = output.strip().split('[/STREAM]')
+    streams = []
+    for part in stream_parts:
+        stream_dict = {}
+        for row in part.strip().splitlines():
+            if row.startswith('[STREAM]') or not row.strip():
+                continue
+            key_value = row.split('=', 1)
+            if len(key_value) == 2:
+                key, value = key_value
+                stream_dict[key.strip()] = value.strip()
+        streams.append(stream_dict)
+    return streams
+
+def extract_video_metadata(stream_info):
+    dict_metadata = {}
+    dict_metadata['index'] = stream_info.get('index')
+    dict_metadata['codec_name'] = stream_info.get('codec_name')
+    dict_metadata['codec_type'] = "video"
+    dict_metadata['width'] = stream_info.get('width')
+    dict_metadata['height'] = stream_info.get('height')
+
+    frame_rate_parts = stream_info.get('r_frame_rate', '0/1').split('/')
+    if len(frame_rate_parts) == 2 and frame_rate_parts[1] != '':
+        dict_metadata['fps'] = int(frame_rate_parts[0]) / int(frame_rate_parts[1])
+    else:
+        dict_metadata['fps'] = 0
+    dict_metadata['duration'] = stream_info.get('duration')
+    dict_metadata['bit_rate'] = stream_info.get('bit_rate')
+    return dict_metadata
+
+def extract_audio_metadata(stream_info):
+    dict_metadata = {}
+    dict_metadata['index'] = stream_info.get('index')
+    dict_metadata['codec_name'] = stream_info.get('codec_name')
+    dict_metadata["codec_type"] = "audio"
+    return dict_metadata
 
 def analyze(path):
     if not os.path.isfile(path):
@@ -19,11 +58,23 @@ def analyze(path):
         print(f"Error retrieving video info: {e}")
         return
     
-    print(result)
+    parse_result = parse_ffprobe_output(result)
+    
+    streams = []
+
+    for stream_info in parse_result:
+        codec_type = stream_info.get('codec_type')
+        if codec_type == 'video':
+            streams.append(extract_video_metadata(stream_info))
+        elif codec_type == 'audio':
+            streams.append(extract_audio_metadata(stream_info))
+
+    return streams
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze video files.")
     parser.add_argument("-path", type=str, help="Path to the video file")
     args = parser.parse_args()
 
-    analyze(args.path)
+    result = analyze(args.path)
+    print(result)
