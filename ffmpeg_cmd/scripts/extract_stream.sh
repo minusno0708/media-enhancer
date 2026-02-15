@@ -9,4 +9,4 @@ if [ -z "$SOURCE" ] || [ -z "$INDEX" ] || [ -z "$OUTPUT" ]; then
     exit 2
 fi
 
-ffmpeg -i "$SOURCE" -map 0:"$INDEX" -c copy "$OUTPUT"
+ffmpeg -y -i "$SOURCE" -map 0:"$INDEX" -c copy "$OUTPUT"

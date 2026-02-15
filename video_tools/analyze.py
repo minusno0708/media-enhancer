@@ -3,8 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from ffmpeg_cmd import run as ffmpeg_run        
+import ffmpeg_cmd
 
 def parse_ffprobe_output(output):
     stream_parts = output.strip().split('[/STREAM]')
@@ -21,7 +20,7 @@ def parse_ffprobe_output(output):
         streams.append(stream_dict)
     return streams
 
-def extract_video_metadata(stream_info):
+def parse_video_metadata(stream_info):
     dict_metadata = {}
     dict_metadata['index'] = stream_info.get('index')
     dict_metadata['codec_name'] = stream_info.get('codec_name')
@@ -38,7 +37,7 @@ def extract_video_metadata(stream_info):
     dict_metadata['bit_rate'] = stream_info.get('bit_rate')
     return dict_metadata
 
-def extract_audio_metadata(stream_info):
+def parse_audio_metadata(stream_info):
     dict_metadata = {}
     dict_metadata['index'] = stream_info.get('index')
     dict_metadata['codec_name'] = stream_info.get('codec_name')
@@ -53,7 +52,7 @@ def analyze(path):
         raise ValueError("The file is not an MP4 video.")
 
     try:
-        result = ffmpeg_run("get_video_info.sh", path)
+        result = ffmpeg_cmd.run("probe_video", path)
     except RuntimeError as e:
         print(f"Error retrieving video info: {e}")
         return
@@ -65,9 +64,9 @@ def analyze(path):
     for stream_info in parse_result:
         codec_type = stream_info.get('codec_type')
         if codec_type == 'video':
-            streams.append(extract_video_metadata(stream_info))
+            streams.append(parse_video_metadata(stream_info))
         elif codec_type == 'audio':
-            streams.append(extract_audio_metadata(stream_info))
+            streams.append(parse_audio_metadata(stream_info))
 
     return streams
 

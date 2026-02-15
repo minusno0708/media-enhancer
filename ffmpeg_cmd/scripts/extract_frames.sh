@@ -8,4 +8,4 @@ if [ -z "$SOURCE" ] || [ -z "$OUTPUT" ]; then
     exit 2
 fi
 
-ffmpeg -i "$SOURCE" "$OUTPUT/frame_%04d.png"
+ffmpeg -y -i "$SOURCE" "$OUTPUT/frame_%04d.png"
