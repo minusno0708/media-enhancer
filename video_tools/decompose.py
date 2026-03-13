@@ -4,6 +4,7 @@ import shutil
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import video_tools
 import video_tools.analyze as analyze
 import ffmpeg_cmd
 
@@ -40,6 +41,7 @@ def extract_frames(filepath, output):
 
 def decompose(filepath, output):
     streams = analyze(filepath)
+    manifest = video_tools.Manifest()
 
     if not os.path.exists(output):
         os.makedirs(output)
@@ -47,14 +49,21 @@ def decompose(filepath, output):
     stream_files = extract_streams(filepath, output, streams)
     
     for stream in streams:
-        index = stream.get('index')
-        codec_type = stream.get('codec_type')
+        index = stream["index"]
+        codec_type = stream["codec_type"]
+
+        manifest.set_stream(stream, stream_files[index], "composable")
 
         if codec_type == 'video':
-            extract_frames(stream_files[index], f"{output}/frames_{index}")
+            frame_path = f"{output}/frames_{index}"
+            extract_frames(stream_files[index], frame_path)
+            os.remove(stream_files[index])
+            manifest.set_stream(stream, frame_path, "decomposed")
+
+    manifest.save(output)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Extract streams from a video file.")
+    parser = argparse.ArgumentParser(description="Decompose streams from a video file.")
     parser.add_argument("-f", "--file", type=str, required=True, help="Input Path")
     parser.add_argument("-o", "--output", type=str, required=True, help="Output Path")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output directory")
