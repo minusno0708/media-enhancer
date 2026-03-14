@@ -35,6 +35,9 @@ def parse_video_metadata(stream_info):
         dict_metadata['fps'] = 0
     dict_metadata['duration'] = stream_info.get('duration')
     dict_metadata['bit_rate'] = stream_info.get('bit_rate')
+    dict_metadata['profile'] = stream_info.get('profile')
+    dict_metadata['level'] = stream_info.get('level')
+    dict_metadata['pix_fmt'] = stream_info.get('pix_fmt')
     return dict_metadata
 
 def parse_audio_metadata(stream_info):

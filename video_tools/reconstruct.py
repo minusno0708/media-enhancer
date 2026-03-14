@@ -6,8 +6,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import video_tools
 import ffmpeg_cmd
 
-def merge_frames(dir, fps, output):
+def merge_frames(dir, metadata, output):
     frames_pattern = os.path.join(dir, "frame_%04d.png")
+
+    fps = metadata['fps']
+
+    options = {}
+
+    options['-profile:v'] = metadata.get('profile', 'high')
+    options['-level'] = metadata.get('level', '31')
+    options['-pix_fmt'] = metadata.get('pix_fmt', 'yuv420p')
 
     try:
         ffmpeg_cmd.run("merge_frames", frames_pattern, str(fps), output)
@@ -33,7 +41,7 @@ def reconstruct(manifest, output):
     for stream in manifest.streams.values():
         if stream["type"] == "video" and stream["status"] == "decomposed":
             stream_path = f"{os.path.dirname(stream['path'])}/stream_{stream['metadata']['index']}.mp4"
-            merge_frames(stream["path"], stream["metadata"]["fps"], stream_path)
+            merge_frames(stream["path"], stream["metadata"], stream_path)
             manifest.set_stream(stream["metadata"], stream_path, "composable")
 
             video_stream_path = stream_path
