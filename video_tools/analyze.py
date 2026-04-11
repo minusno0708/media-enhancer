@@ -22,29 +22,30 @@ def parse_ffprobe_output(output):
 
 def parse_video_metadata(stream_info):
     dict_metadata = {}
-    dict_metadata['index'] = stream_info.get('index')
-    dict_metadata['codec_name'] = stream_info.get('codec_name')
-    dict_metadata['codec_type'] = "video"
-    dict_metadata['width'] = stream_info.get('width')
-    dict_metadata['height'] = stream_info.get('height')
+
+    for key, value in stream_info.items():
+        dict_metadata[key] = value
 
     frame_rate_parts = stream_info.get('r_frame_rate', '0/1').split('/')
     if len(frame_rate_parts) == 2 and frame_rate_parts[1] != '':
         dict_metadata['fps'] = int(frame_rate_parts[0]) / int(frame_rate_parts[1])
     else:
         dict_metadata['fps'] = 0
-    dict_metadata['duration'] = stream_info.get('duration')
-    dict_metadata['bit_rate'] = stream_info.get('bit_rate')
-    dict_metadata['profile'] = stream_info.get('profile')
-    dict_metadata['level'] = stream_info.get('level')
-    dict_metadata['pix_fmt'] = stream_info.get('pix_fmt')
+
+    for key in ["index", "codec_name", "width", "height", "fps"]:
+        if key not in dict_metadata:
+            raise ValueError(f"Missing required video metadata key: {key}")
     return dict_metadata
 
 def parse_audio_metadata(stream_info):
     dict_metadata = {}
-    dict_metadata['index'] = stream_info.get('index')
-    dict_metadata['codec_name'] = stream_info.get('codec_name')
-    dict_metadata["codec_type"] = "audio"
+    for key, value in stream_info.items():
+        dict_metadata[key] = value
+
+    for key in ["index", "codec_name"]:
+        if key not in dict_metadata:
+            raise ValueError(f"Missing required audio metadata key: {key}")
+        
     return dict_metadata
 
 def analyze(path):

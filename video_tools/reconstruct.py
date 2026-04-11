@@ -13,12 +13,16 @@ def merge_frames(dir, metadata, output):
 
     options = {}
 
-    options['-profile:v'] = metadata.get('profile', 'high')
-    options['-level'] = metadata.get('level', '31')
-    options['-pix_fmt'] = metadata.get('pix_fmt', 'yuv420p')
+    for key, value in metadata.items():
+        if key in ["profile"]:
+            options[f"-{key}:v"] = value
+        elif key in ["level", "pix_fmt"]:
+            options[f"-{key}"] = value
+
+    options_str = ' '.join(f"{key} {value}" for key, value in options.items())
 
     try:
-        ffmpeg_cmd.run("merge_frames", frames_pattern, str(fps), output)
+        ffmpeg_cmd.run("merge_frames", frames_pattern, str(fps), output, options_str)
         print(f"Successfully merged frames from {dir} into {output}")
     except RuntimeError as e:
         print(f"Error merging frames from {dir}: {e}")
