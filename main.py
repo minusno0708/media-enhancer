@@ -1,19 +1,25 @@
-import sys
+import argparse
 import os
 import shutil
+import glob
 
-from utils import directory_utils
+import video_tools
 
-VIDEO_EXTENSIONS = (".mp4")
-IMAGE_EXTENSIONS = (".jpg")
+VIDEO_EXTENSIONS = ("mp4",)
+IMAGE_EXTENSIONS = ("jpg",)
 
-def build_metadata(src_path, dest_path):
+WORKSPACE_DIR = "workspace"
+
+def build_metadata(src_path, output_dir):
     result = {}
 
     result["src_path"] = src_path
 
     file_path = "/".join(src_path.split('/')[1:])
-    result["dest_path"] = os.path.join(dest_path, file_path)
+    result["dest_path"] = os.path.join(output_dir, file_path)
+
+    result["workspace_dir"] = WORKSPACE_DIR + '/' + file_path.split('.')[0]
+    print(result["workspace_dir"])
 
     if os.path.isdir(src_path):
         result["type"] = 'directory'
@@ -31,37 +37,33 @@ def build_metadata(src_path, dest_path):
 
     return result
 
-def run(src_path, dest_path):
-    file_metadata = build_metadata(src_path, dest_path)
+def run(src_path, output_dir):
+    file_metadata = build_metadata(src_path, output_dir)
 
-    print(F"処理開始: {file_metadata['src_path']}")
+    print(F"Processing: {file_metadata['src_path']}")
 
     if file_metadata["type"] == 'directory':
-        dir_contents = directory_utils.get_children(file_metadata["src_path"])
-
-        directory_utils.create_directory_if_not_exists(file_metadata["dest_path"])
+        dir_contents = glob.glob(os.path.join(file_metadata["src_path"], '*'))
+    
+        if not os.path.exists(file_metadata["dest_path"]):
+            os.makedirs(file_metadata["dest_path"])
 
         for content_path in dir_contents:
-            run(content_path, dest_path)
+            run(content_path, output_dir)
 
     elif file_metadata["type"] == 'video':
-        # 仮の処理として動画ファイルをコピー
-        shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
+        video_tools.decompose(src_path, output_dir)
     elif file_metadata["type"] == 'image':
         # 仮の処理として画像ファイルをコピー
         shutil.copy(file_metadata['src_path'], file_metadata['dest_path'])
     else:
-        print(f"{file_metadata['src_path']} はサポートされていないファイル形式です")
-
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python main.py <source_path> <destination_path>")
-        sys.exit(1)
-
-    src_path = sys.argv[1]
-    dest_path = sys.argv[2]
-
-    run(src_path, dest_path)
+        print(f"{file_metadata['src_path']} is unsupported file type. Skipping.")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Process video and image files.")
+    parser.add_argument("-s", "--src", type=str, required=True, help="Source Path")
+    parser.add_argument("-d", "--dest", type=str, required=True, help="Destination Path")
+
+    args = parser.parse_args()
+    
+    run(args.src, args.dest)

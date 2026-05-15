@@ -9,10 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-# Media files
-original/
-result/
+workspace/
+*.json
 
 # Media extensions
 *.mp4
 *.jpg
+*.png
